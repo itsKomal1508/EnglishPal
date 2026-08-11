@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "391492309493",
+    "firebase_url": "https://roomm-9e237-default-rtdb.firebaseio.com",
+    "project_id": "roomm-9e237",
+    "storage_bucket": "roomm-9e237.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:391492309493:android:10058884a3599f02eb90bc",
+        "android_client_info": {
+          "package_name": "com.englishpal.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_3zVySyDoVrPU0KsY0Z0frIFv1Ywg9wg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

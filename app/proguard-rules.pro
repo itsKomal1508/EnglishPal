@@ -1,0 +1,1 @@
+# ProGuard Rules for EnglishPal

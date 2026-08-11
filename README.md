@@ -116,13 +116,13 @@ app/src/main/java/com/englishpal/app/
 
 ## 📱 Screenshots
 
-|             Home Dashboard             |             AI Conversation Partner             |             AI Mock Interview             |
-|:--------------------------------------:|:-----------------------------------------------:|:-----------------------------------------:|
-| *![Home Screen](screenshots/home.png)* | *![Conversation Screen](conversation/home.png)* | *![Interview Screen](interview/home.png)* |
+|             Home Dashboard             |                AI Conversation Partner                 |                  AI Mock Interview                  |
+|:--------------------------------------:|:------------------------------------------------------:|:---------------------------------------------------:|
+| *![Home Screen](screenshots/home.png)* | *![Conversation Screen](screenshots/conversation.png)* | *![Interview Screen](screenshots/conversation.png)* |
 
-|           Grammar Quiz           |              Quiz Feedback               | Mistakes Vault |
-|:--------------------------------:|:----------------------------------------:| :---: |
-| *![Quiz Screen](quize/home.png)* | *![Feedback Screen](feedback/home.png))* | *![Mistakes Screen](mistakes/home.png)* |
+|              Grammar Quiz               |                  Quiz Feedback                  |                 Mistakes Vault                 |
+|:---------------------------------------:|:-----------------------------------------------:|:----------------------------------------------:|
+| *![Quiz Screen](screenshots/quize.png)* | *![Feedback Screen](screenshots/feedback.png))* | *![Mistakes Screen](screenshots/mistakes.png)* |
 
 ---
 

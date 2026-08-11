@@ -116,9 +116,9 @@ app/src/main/java/com/englishpal/app/
 
 ## 📱 Screenshots
 
-|             Home Dashboard             |                AI Conversation Partner                 |                  AI Mock Interview                  |
-|:--------------------------------------:|:------------------------------------------------------:|:---------------------------------------------------:|
-| *![Home Screen](screenshots/home.png)* | *![Conversation Screen](screenshots/conversation.png)* | *![Interview Screen](screenshots/conversation.png)* |
+|             Home Dashboard             |                AI Conversation Partner                 |                AI Mock Interview                 |
+|:--------------------------------------:|:------------------------------------------------------:|:------------------------------------------------:|
+| *![Home Screen](screenshots/home.png)* | *![Conversation Screen](screenshots/conversation.png)* | *![Interview Screen](screenshots/interview.png)* |
 
 |              Grammar Quiz               |                  Quiz Feedback                  |                 Mistakes Vault                 |
 |:---------------------------------------:|:-----------------------------------------------:|:----------------------------------------------:|

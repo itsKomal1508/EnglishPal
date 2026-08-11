@@ -116,13 +116,13 @@ app/src/main/java/com/englishpal/app/
 
 ## 📱 Screenshots
 
-| Home Dashboard | AI Conversation Partner | AI Mock Interview |
-| :---: | :---: | :---: |
-| *![Home Screen](https://via.placeholder.com/300x600?text=Home+Dashboard)* | *![Conversation Screen](https://via.placeholder.com/300x600?text=AI+Conversation)* | *![Interview Screen](https://via.placeholder.com/300x600?text=Mock+Interview)* |
+|             Home Dashboard             |             AI Conversation Partner             |             AI Mock Interview             |
+|:--------------------------------------:|:-----------------------------------------------:|:-----------------------------------------:|
+| *![Home Screen](screenshots/home.png)* | *![Conversation Screen](conversation/home.png)* | *![Interview Screen](interview/home.png)* |
 
-| Grammar Quiz | Quiz Feedback | Mistakes Vault |
-| :---: | :---: | :---: |
-| *![Quiz Screen](https://via.placeholder.com/300x600?text=Grammar+Quiz)* | *![Feedback Screen](https://via.placeholder.com/300x600?text=Quiz+Feedback)* | *![Mistakes Screen](https://via.placeholder.com/300x600?text=Mistakes+Vault)* |
+|           Grammar Quiz           |              Quiz Feedback               | Mistakes Vault |
+|:--------------------------------:|:----------------------------------------:| :---: |
+| *![Quiz Screen](quize/home.png)* | *![Feedback Screen](feedback/home.png))* | *![Mistakes Screen](mistakes/home.png)* |
 
 ---
 
@@ -140,4 +140,4 @@ app/src/main/java/com/englishpal/app/
 Final-Year B.Tech Student | Software & Android Developer
 
 * **GitHub**: [@itsKomal1508](https://github.com/itsKomal1508)
-* **LinkedIn**: [Connect on LinkedIn](https://www.linkedin.com/)
+* **LinkedIn**: [Connect on LinkedIn](https://www.linkedin.com/in/komal-achut-rathod/)

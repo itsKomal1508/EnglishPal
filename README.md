@@ -33,11 +33,11 @@ Existing apps were either passive grammar quizzes or generic language tools with
 
 | Home Dashboard | AI Conversation | AI Mock Interview |
 |:---:|:---:|:---:|
-| ![Home Screen](screenshots/home.png) | ![Conversation](screenshots/conversation.png) | ![Interview](screenshots/interview.png) |
+| <img src="screenshots/home.png" width="220" alt="Home Screen"/> | <img src="screenshots/conversation.png" width="220" alt="AI Conversation"/> | <img src="screenshots/interview.png" width="220" alt="AI Mock Interview"/> |
 
 | Grammar Quiz | Detailed Feedback | Mistakes Vault |
 |:---:|:---:|:---:|
-| ![Quiz](screenshots/quize.png) | ![Feedback](screenshots/feedback.png) | ![Mistakes](screenshots/mistakes.png) |
+| <img src="screenshots/quize.png" width="220" alt="Grammar Quiz"/> | <img src="screenshots/feedback.png" width="220" alt="Detailed Feedback"/> | <img src="screenshots/mistakes.png" width="220" alt="Mistakes Vault"/> |
 
 ---
 

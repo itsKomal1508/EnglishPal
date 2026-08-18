@@ -1,0 +1,203 @@
+\documentclass[letterpaper,10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[margin=0.4in]{geometry}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[colorlinks=true, urlcolor=navy, linkcolor=navy]{hyperref}
+\usepackage{tabularx}
+
+%----------COLOR DEFINITIONS----------
+\definecolor{navy}{RGB}{20, 75, 120}       % Dark Blue accent for headings, titles & dates
+\definecolor{charcoal}{RGB}{35, 35, 35}   % Charcoal body text
+
+%----------PAGE STYLE----------
+\pagestyle{empty}
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+%----------CUSTOM SECTION HEADING (DOUBLE RULE MATCHING IMAGE)----------
+\newcommand{\resumesection}[1]{%
+  \vspace{4pt}%
+  {\color{navy}\hrule height 0.8pt}%
+  \vspace{2.5pt}%
+  \begin{center}%
+    {\color{navy}\bfseries\small\MakeUppercase{#1}}%
+  \end{center}%
+  \vspace{-7.5pt}%
+  {\color{navy}\hrule height 0.8pt}%
+  \vspace{3pt}%
+}
+
+\newcommand{\resumeItem}[1]{%
+  \item \small{\color{charcoal}#1}%
+}
+
+%-------------------------------------------
+%%%%%% RESUME STARTS HERE %%%%%%%%%%%%%%%%%%%
+%-------------------------------------------
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Large \bfseries \color{navy} KOMAL RATHOD} \\[2pt]
+    {\small \bfseries \color{navy} Software Development Engineer / Android Engineer} \\[3pt]
+    \small
+    +91 9545139408 \ $|$ \
+    \href{mailto:komalachutrathod@gmail.com}{komalachutrathod@gmail.com} \ $|$ \
+    \href{https://www.linkedin.com/in/komal-achut-rathod}{LinkedIn} \ $|$ \
+    \href{https://github.com/itsKomal1508}{GitHub} \ $|$ \
+    \href{https://leetcode.com/u/Komal_rathod15/}{LeetCode}
+\end{center}
+\vspace{-6pt}
+
+%-----------PROFESSIONAL SUMMARY-----------
+\resumesection{Professional Summary}
+\begin{center}
+\begin{minipage}{0.98\textwidth}
+\small \color{charcoal}
+Goal-oriented Software \& Android Development Engineer with hands-on expertise in Kotlin, Java, Jetpack Compose, MVVM, Clean Architecture, Hilt, Room DB, and AI API integrations. Proven track record of building production-grade native applications, solving algorithmic problems, and leading student developer communities.
+\end{minipage}
+\end{center}
+\vspace{-4pt}
+
+%-----------TECHNICAL SKILLS-----------
+\resumesection{Technical Skills}
+\begin{itemize}[leftmargin=0.15in, label={}, itemsep=-2pt, topsep=0pt, parsep=0pt]
+\small
+\item \textbf{Programming Languages:} Kotlin, Java, C, C++, Python, SQL
+\item \textbf{Android Architecture:} Android SDK, Jetpack Compose, MVVM, Clean Architecture, Hilt, Coroutines, Room DB
+\item \textbf{Cloud \& REST APIs:} Retrofit, REST APIs, Firebase (Auth, Firestore), Gemini AI API, Google Maps SDK
+\item \textbf{Developer Tools \& Core:} Git, GitHub, Android Studio, Gradle, JUnit, Agile Scrum, DSA, OOP, DBMS
+\end{itemize}
+\vspace{-2pt}
+
+%-----------WORK EXPERIENCE-----------
+\resumesection{Professional Experience}
+\vspace{-1pt}
+\begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+  \textbf{\color{navy}Android Development Intern} & \textbf{\color{navy}\small Jun 2023 -- Jul 2023} \\
+  \textbf{\color{charcoal}\small Mountreach Solutions Private Limited} & \textit{\small \color{charcoal}Amravati, Maharashtra} \\
+\end{tabular*}
+\vspace{-3pt}
+\begin{itemize}[leftmargin=0.15in, itemsep=-2pt, topsep=1pt, parsep=0pt]
+  \resumeItem{Engineered responsive Android UI modules using Java, XML layouts, and Android SDK during a 6-week industrial training program.}
+  \resumeItem{Implemented multi-screen Activity lifecycle management, Intent navigation, and Firebase Auth for secure user session management.}
+  \resumeItem{Integrated Firebase Realtime Database for cloud data synchronization and optimized view rendering efficiency across devices.}
+\end{itemize}
+\vspace{1pt}
+\hspace{0.15in}\small{\textbf{\textit{Technologies Used: Java, Android SDK, XML Layouts, Firebase Auth, Firebase Realtime DB}}}
+\vspace{-2pt}
+
+%-----------PROJECTS-----------
+\resumesection{Projects}
+
+\vspace{-1pt}
+\begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+  \textbf{\color{navy}EnglishPal — AI Speaking \& Interview Prep App} & \textbf{\color{navy}\small Jan 2026 -- Feb 2026} \\
+\end{tabular*}
+\vspace{-4pt}
+\small{\textit{Kotlin, Compose, Gemini AI API, Hilt, Coroutines, Firestore}} \ $|$ \ \href{https://github.com/itsKomal1508/EnglishPal}{[\underline{GitHub}]}
+\vspace{-2pt}
+\begin{itemize}[leftmargin=0.15in, itemsep=-2pt, topsep=1pt, parsep=0pt]
+  \resumeItem{Architected an AI speaking practice mobile application using \textbf{Clean Architecture (MVVM)}, \textbf{Hilt} dependency injection, and \textbf{Jetpack Compose} declarative UI state management.}
+  \resumeItem{Integrated \textbf{Google Gemini AI API} with structured prompt engineering to analyze user speech in real-time, classifying grammar, tense, and preposition errors.}
+  \resumeItem{Leveraged \textbf{Coroutines} and \textbf{StateFlow} for asynchronous data pipelines, utilizing \textbf{Firebase Firestore} for user telemetry and real-time interview analytics.}
+\end{itemize}
+\vspace{1pt}
+\hspace{0.15in}\small{\textbf{\textit{Technologies Used: Kotlin, Jetpack Compose, Gemini AI API, Hilt, Coroutines, StateFlow, Firestore}}}
+\vspace{2pt}
+
+\vspace{-1pt}
+\begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+  \textbf{\color{navy}CLearn — C Programming Learning Platform} & \textbf{\color{navy}\small Sep 2024 -- Dec 2024} \\
+\end{tabular*}
+\vspace{-4pt}
+\small{\textit{Kotlin, Compose, Room DB, Retrofit, Judge0 API}} \ $|$ \ \href{https://github.com/itsKomal1508/CLearn-Android-App/releases/download/v1.0.0/app-release.apk}{[\underline{GitHub APK}]}
+\vspace{-2pt}
+\begin{itemize}[leftmargin=0.15in, itemsep=-2pt, topsep=1pt, parsep=0pt]
+  \resumeItem{Architected a native Android app for 5,000+ diploma students featuring 9 complete syllabus units, interactive visualizers, and offline 70-mark MSBTE exam papers with model answer keys.}
+  \resumeItem{Integrated \textbf{Judge0 REST API} via \textbf{Retrofit} for cloud C compilation, building a custom regex parser to translate raw compiler errors into humanized beginner debugging tips.}
+  \resumeItem{Engineered an offline-first data layer with \textbf{Room SQLite DB} for daily streak tracking and quiz metrics, featuring a zero-latency \textbf{English/Hinglish language toggle}.}
+\end{itemize}
+\vspace{1pt}
+\hspace{0.15in}\small{\textbf{\textit{Technologies Used: Kotlin, Jetpack Compose, Room DB, Retrofit, REST API, Judge0 API}}}
+\vspace{2pt}
+
+\vspace{-1pt}
+\begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+  \textbf{\color{navy}SafeWoman — Personal Emergency Response App} & \textbf{\color{navy}\small Feb 2024 -- Apr 2024} \\
+\end{tabular*}
+\vspace{-4pt}
+\small{\textit{Kotlin, Room DB, Google Maps SDK, GPS Fused Location, Overpass API}} \ $|$ \ \href{https://github.com/itsKomal1508/SafeWoman}{[\underline{GitHub}]}
+\vspace{-2pt}
+\begin{itemize}[leftmargin=0.15in, itemsep=-2pt, topsep=1pt, parsep=0pt]
+  \resumeItem{Developed an emergency SOS response application in \textbf{Kotlin} incorporating hardware shake gestures and volume key events for automated panic alerts.}
+  \resumeItem{Integrated \textbf{Fused Location Provider} and \textbf{Google Maps SDK} for high-precision real-time GPS tracking and automated emergency SMS notifications.}
+  \resumeItem{Implemented \textbf{Room Database} for offline contact caching and queried \textbf{Overpass REST API} to dynamically pinpoint nearby police stations and medical facilities.}
+\end{itemize}
+\vspace{1pt}
+\hspace{0.15in}\small{\textbf{\textit{Technologies Used: Kotlin, Room DB, Google Maps SDK, GPS Fused Location, Overpass REST API}}}
+\vspace{-2pt}
+
+%-----------EDUCATION-----------
+\resumesection{Education}
+\vspace{-1pt}
+\begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+  \textbf{\color{navy}B.Tech in Information Technology} & \textbf{\color{navy}\small Aug 2024 -- May 2027} \\
+  \textbf{\color{charcoal}\small Shri Guru Gobind Singhji Institute of Engineering and Technology} & \textit{\small \color{charcoal}Nanded, Maharashtra} \\
+\end{tabular*}
+\vspace{-3pt}
+\begin{itemize}[leftmargin=0.15in, itemsep=-2pt, topsep=1pt, parsep=0pt]
+  \resumeItem{\textbf{Academic Standing:} CGPA: \textbf{8.24 / 10.0} (Direct Second Year Admission)}
+\end{itemize}
+\vspace{2pt}
+
+\vspace{-1pt}
+\begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+  \textbf{\color{navy}Diploma in Information Technology} & \textbf{\color{navy}\small Aug 2021 -- Jun 2024} \\
+  \textbf{\color{charcoal}\small Government Polytechnic, Ambad} & \textit{\small \color{charcoal}Jalna, Maharashtra} \\
+\end{tabular*}
+\vspace{-3pt}
+\begin{itemize}[leftmargin=0.15in, itemsep=-2pt, topsep=1pt, parsep=0pt]
+  \resumeItem{\textbf{Academic Standing:} Aggregate Percentage: \textbf{90.25\%} (\textbf{Department Rank 2} out of 60 students)}
+\end{itemize}
+\vspace{-2pt}
+
+%-----------LEADERSHIP EXPERIENCE-----------
+\resumesection{Leadership Experience}
+\vspace{-1pt}
+\begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+  \textbf{\color{navy}App Lead -- Google Developer Groups (GDG) On Campus} & \textbf{\color{navy}\small Aug 2025 -- Present} \\
+\end{tabular*}
+\vspace{-3pt}
+\begin{itemize}[leftmargin=0.15in, itemsep=-2pt, topsep=1pt, parsep=0pt]
+  \resumeItem{Spearheaded Android initiatives and conducted hands-on workshops on Kotlin, Compose, and Git for college student developers.}
+\end{itemize}
+\vspace{2pt}
+
+\vspace{-1pt}
+\begin{tabular*}{0.98\textwidth}[t]{l@{\extracolsep{\fill}}r}
+  \textbf{\color{navy}Event Coordinator -- SWAG Technical Club} & \textbf{\color{navy}\small Aug 2024 -- Present} \\
+\end{tabular*}
+\vspace{-3pt}
+\begin{itemize}[leftmargin=0.15in, itemsep=-2pt, topsep=1pt, parsep=0pt]
+  \resumeItem{Coordinated 2 campus-wide hackathons for 350+ participants, managing a core execution team of 75+ student volunteers.}
+\end{itemize}
+\vspace{-2pt}
+
+%-----------ACHIEVEMENTS & CERTIFICATIONS-----------
+\resumesection{Achievements and Certifications}
+\begin{itemize}[leftmargin=0.15in, itemsep=-2pt, topsep=1pt, parsep=0pt]
+  \resumeItem{\textbf{Department Rank 2:} Secured \textbf{2nd Rank} out of 60 students in Diploma in Information Technology with \textbf{90.25\%} aggregate marks.}
+  \resumeItem{\textbf{Coding Competition Winner:} Achieved \textbf{3rd Rank} among 100+ competitive coders in a Blind C Programming Competition.}
+  \resumeItem{\textbf{5G Security Bootcamp (IIT Hyderabad):} Completed intensive 5-day training covering 5G network security, cryptography basics, and Docker (\href{https://drive.google.com/file/d/1YzZ2-vSy_SLP0esGtqzAZHZotbUyRQpL/view?usp=sharing}{Certificate}).}
+  \resumeItem{\textbf{Cyber Security and AI Bootcamp (SGGSIE\&T T\&P Cell):} Completed 18-hour training on web security, AI tools, and corporate communication (\href{https://drive.google.com/file/d/1X0pr_JkimAg2ER5Hg-aGfPaGs8qrcvOk/view?usp=sharing}{Certificate}).}
+\end{itemize}
+
+\end{document}

@@ -1,88 +1,91 @@
-# EnglishPal 💬🤖
+# 💬 EnglishPal — AI-Powered English & Interview Prep App
 
-An AI-powered English learning assistant and software engineering mock interviewer built for Android using **Kotlin**, **Jetpack Compose**, **Google Gemini AI**, and **Firebase**.
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.23-7F52FF?style=flat-square&logo=kotlin)](https://kotlinlang.org/)
+[![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20%2F%20M3-4285F4?style=flat-square&logo=android)](https://developer.android.com/jetpack/compose)
+[![Architecture](https://img.shields.io/badge/Architecture-Clean%20%2B%20MVVM-3DDC84?style=flat-square&logo=android)](https://developer.android.com/topic/architecture)
+[![Gemini AI](https://img.shields.io/badge/AI Engine-Google%20Gemini-8E75B5?style=flat-square&logo=google)](https://aistudio.google.com/)
+[![Firebase](https://img.shields.io/badge/Backend-Firebase%20(Auth%20%2B%20Firestore)-FFCA28?style=flat-square&logo=firebase)](https://firebase.google.com/)
 
-EnglishPal helps students and job seekers improve their English communication, master grammar, and practice software engineering technical interviews through interactive AI conversations and dynamic evaluations.
-
----
-
-## 🎯 Problem & Solution
-
-* **Problem**: Many students and early-career software developers experience difficulty with English fluency, grammar accuracy, and technical communication during placement interviews. Practicing with peers can be difficult to schedule, while traditional grammar apps lack contextual, conversational feedback.
-* **Solution**: **EnglishPal** brings together an interactive AI conversation partner, a staged mock technical interviewer, dynamic grammar quizzes with AI evaluations, and a real-time grammar mistake vault—all inside a modern, native Android app.
+A modern, native Android application designed to help engineering students and job seekers master English fluency, grammar accuracy, and technical interview communication through interactive **Google Gemini AI** conversations.
 
 ---
 
-## ✨ Key Features
+## 💡 Why I Built This
 
-* 💬 **AI English Conversation Partner**: Practice freeform English conversations. Powered by Gemini AI, the app provides real-time inline grammar and vocabulary corrections for user messages.
-* 🎙️ **Software Engineering Mock Interviewer**: Simulates a multi-stage technical job interview led by an AI Tech Lead (Alex). Covers **Introduction**, **Technical**, **Behavioral**, and **Wrap-up** stages with dual feedback per response (technical depth + English grammar precision) and an end-of-session evaluation report card.
-* 📝 **Adaptive Grammar Quizzes**: Topic-wise grammar quizzes (Tenses, Prepositions, Subject-Verb Agreement, Articles, Conditionals, Modals, Passive Voice, Direct/Indirect Speech). Submissions are evaluated by Gemini AI to deliver personalized feedback, answer explanations, and weak area insights.
-* 📚 **Personalized Grammar Mistakes Vault**: Automatically captures grammatical errors from conversation chats and quiz sessions, storing original vs. corrected sentences with explanations for structured review.
-* 🔥 **Daily Practice Streak**: Gamified daily tracking system that encourages consistent learning habits by logging daily user engagement.
-* 🔐 **Firebase Authentication**: Secure user login supporting Google Sign-In, Email/Password, and Guest access modes.
+As a final-year Information Technology student preparing for placement season, I noticed many talented peers struggle not with coding, but with **articulating technical ideas clearly in English during interviews**. 
+
+Existing apps were either passive grammar quizzes or generic language tools without context. I engineered **EnglishPal** to simulate realistic software engineering technical interviews with an AI interviewer ("Alex"), offering **instant dual-aspect feedback** (technical correctness + English grammar precision).
 
 ---
 
-## 🏗️ Technical Architecture & Design Patterns
+## ✨ Core Features
 
-The app is built following **Android Clean Architecture** guidelines and the **MVVM (Model-View-ViewModel)** architectural pattern for clear separation of concerns, testability, and maintainability.
+- 🎙️ **AI Software Engineering Mock Interviewer**: Multi-stage mock technical interviews covering **Introduction**, **Technical Depth**, **Behavioral (STAR method)**, and **Wrap-up** with detailed end-of-session evaluation report cards.
+- 💬 **Interactive AI Conversation Partner**: Natural chat mode powered by Gemini AI with inline sentence restructuring, tense corrections, and context suggestions.
+- 📝 **Adaptive Grammar Quizzes**: Topic-specific quizzes (Tenses, Prepositions, Active/Passive, Conditionals) with Gemini-driven error analysis and explanation breakdowns.
+- 📚 **Personalized Grammar Vault**: Auto-captures mistakes from chats and quizzes into a personal Firestore-backed mistake log for spaced repetition.
+- 🔥 **Gamified Streak & Analytics**: Real-time streak tracking to build consistent daily practice habits.
+- 🔐 **Firebase Auth**: Secure Google, Email/Password, and Guest login modes.
+
+---
+
+## 📱 Screen Highlights
+
+| Home Dashboard | AI Conversation | AI Mock Interview |
+|:---:|:---:|:---:|
+| ![Home Screen](screenshots/home.png) | ![Conversation](screenshots/conversation.png) | ![Interview](screenshots/interview.png) |
+
+| Grammar Quiz | Detailed Feedback | Mistakes Vault |
+|:---:|:---:|:---:|
+| ![Quiz](screenshots/quize.png) | ![Feedback](screenshots/feedback.png) | ![Mistakes](screenshots/mistakes.png) |
+
+---
+
+## 🏗️ Architecture & Tech Stack
+
+The app is built adhering strictly to **Android Clean Architecture** guidelines and **MVVM** design principles for modularity, testability, and clean separation of concerns.
 
 ```
 app/src/main/java/com/englishpal/app/
-├── data/
-│   ├── datasource/          # Dynamic question banks & static data sources
-│   └── repository/          # Data repositories (Firestore & Gemini API integration)
-├── di/                      # Hilt Dependency Injection modules (Firebase, Gemini, Repositories)
-├── domain/
-│   ├── model/               # Domain data models (ChatMessage, InterviewMessage, Quiz, etc.)
-│   ├── repository/          # Abstract repository interfaces
-│   └── usecase/             # Domain business logic & use cases
-├── presentation/
-│   ├── auth/                # Authentication screens & AuthViewModel
-│   ├── conversation/        # AI Chat partner UI & ConversationViewModel
-│   ├── home/                # Dashboard UI, streak tracking & HomeViewModel
-│   ├── interview/           # Mock Interview UI & InterviewViewModel
-│   ├── mistakes/            # Grammar Mistakes Vault UI & MistakesViewModel
-│   ├── navigation/          # Jetpack Compose NavHost navigation graph
-│   ├── quiz/                # Quiz & QuizFeedback screens & QuizViewModel
-│   └── theme/               # Material 3 color palettes, typography, and styling
-└── MainActivity.kt          # Main activity & entry point
+├── data/           # Remote & local data sources, Firestore & Gemini repositories
+├── di/             # Dagger Hilt Dependency Injection modules
+├── domain/         # Pure Kotlin models, repository interfaces & use cases
+└── presentation/   # Jetpack Compose UI screens, Navigation, and ViewModels
 ```
 
-### 💡 Key Engineering Highlights
-* **Clean Architecture & Separation of Concerns**: Strict decoupling across Presentation, Domain, and Data layers.
-* **Direct Gemini AI Integration**: Utilizes the official Google AI Client SDK (`com.google.ai.client.generativeai`) with custom structured JSON prompt engineering for deterministic evaluation parsing.
-* **Reactive Real-time Streams**: Employs **Kotlin Coroutines** and `callbackFlow` to adapt Cloud Firestore snapshot listeners into reactive `Flow` data streams.
-* **Dependency Injection**: Fully configured using **Dagger Hilt** with scoped singletons and ViewModel bindings.
-* **Secure API Key Management**: API secrets are configured outside version control using Gradle `local.properties` build-time `BuildConfig` field injection.
+### Tech Stack Matrix
+
+| Component | Technology / Library |
+| --- | --- |
+| **Language** | Kotlin (v1.9.23) |
+| **UI Framework** | Jetpack Compose + Material 3 Design System |
+| **Architecture** | Clean Architecture + MVVM Pattern |
+| **Dependency Injection** | Dagger Hilt (v2.51.1) |
+| **Asynchronous & Streams** | Kotlin Coroutines, `StateFlow`, `callbackFlow` |
+| **AI Engine** | Google Generative AI Client SDK (`Gemini 1.5`) |
+| **Backend & Auth** | Firebase Authentication & Cloud Firestore |
+| **Build Tools** | Gradle (Kotlin DSL - `build.gradle.kts`) |
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Key Engineering Highlights
 
-* **Language**: [Kotlin](https://kotlinlang.org/) (v1.9.23)
-* **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose) with Material 3 Design System
-* **Architecture**: Clean Architecture + MVVM
-* **Dependency Injection**: [Dagger Hilt](https://dagger.dev/hilt/) (v2.51.1)
-* **Async & Reactive**: Kotlin Coroutines & `Flow` (`StateFlow`, `SharedFlow`, `callbackFlow`)
-* **AI Engine**: Google AI Client SDK (`generativeai` v0.9.0 - Gemini Pro)
-* **Backend Services**: Firebase Authentication & Cloud Firestore
-* **Navigation**: Jetpack Navigation Compose
-* **Build System**: Gradle (Kotlin DSL - `build.gradle.kts`)
+- 🔒 **Zero-Trust API Key Security**: Secrets (`GEMINI_API_KEY`) are kept out of version control, injected at build time via `local.properties` into Gradle `BuildConfig`.
+- ⚡ **Reactive Real-time Data**: Converted Cloud Firestore snapshot listeners into reactive Kotlin `Flow` streams using `callbackFlow`.
+- 🎯 **Structured Prompt Engineering**: Utilized system instructions with JSON format constraints to enforce deterministic responses for error parsing.
+- 🧱 **SOLID & Testable Codebase**: Pure Kotlin `domain` layer with zero framework dependencies for unit testability.
 
 ---
 
-## 🔑 Secret Configuration & Setup Guide
+## 🚀 Quick Setup & Build Guide
 
 ### Prerequisites
-* **Android Studio** (Hedgehog 2023.1.1 or newer recommended)
-* **JDK 17**
-* **Android SDK 34** (minimum supported SDK: 26 / Android 8.0)
-* A valid **Google Gemini API Key** (from [Google AI Studio](https://aistudio.google.com/))
-* A **Firebase Project** with Authentication and Firestore enabled
+- **Android Studio** (Hedgehog or newer)
+- **JDK 17** & **Android SDK 34** (Min SDK: 26)
+- Free **Gemini API Key** ([Google AI Studio](https://aistudio.google.com/))
+- Firebase Project (`google-services.json`)
 
-### Setup Instructions
+### Installation Steps
 
 1. **Clone the repository**:
    ```bash
@@ -90,54 +93,28 @@ app/src/main/java/com/englishpal/app/
    cd EnglishPal
    ```
 
-2. **Configure API Secrets (`local.properties`)**:
-   Create or open `local.properties` in the root project directory and add your Gemini API key:
+2. **Add Gemini API Key**:
+   Create a `local.properties` file in the root directory:
    ```properties
-   GEMINI_API_KEY=your_gemini_api_key_here
+   GEMINI_API_KEY=your_actual_gemini_api_key_here
    ```
-   > 🔒 *Note: `local.properties` is listed in `.gitignore` to prevent API keys from being committed to Git.*
 
-3. **Add Firebase Configuration**:
-   * Create a project in [Firebase Console](https://console.firebase.google.com/).
-   * Register your Android app package (`com.englishpal.app`).
-   * Download `google-services.json` and place it inside the `app/` directory:
-     ```
-     EnglishPal/
-     └── app/
-         └── google-services.json
-     ```
+3. **Add Firebase Config**:
+   Place your `google-services.json` inside the `app/` folder:
+   ```
+   EnglishPal/app/google-services.json
+   ```
 
-4. **Build and Run**:
-   * Open the project in Android Studio.
-   * Sync Gradle files (`File -> Sync Project with Gradle Files`).
-   * Select an emulator or physical device (Android 8.0 / API 26+) and click **Run**.
-
----
-
-## 📱 Screenshots
-
-|             Home Dashboard             |                AI Conversation Partner                 |                AI Mock Interview                 |
-|:--------------------------------------:|:------------------------------------------------------:|:------------------------------------------------:|
-| *![Home Screen](screenshots/home.png)* | *![Conversation Screen](screenshots/conversation.png)* | *![Interview Screen](screenshots/interview.png)* |
-
-|              Grammar Quiz               |                  Quiz Feedback                  |                 Mistakes Vault                 |
-|:---------------------------------------:|:-----------------------------------------------:|:----------------------------------------------:|
-| *![Quiz Screen](screenshots/quize.png)* | *![Feedback Screen](screenshots/feedback.png))* | *![Mistakes Screen](screenshots/mistakes.png)* |
-
----
-
-## 🚀 Future Enhancements
-
-* **Voice Input & Pronunciation (STT/TTS)**: Integrating Speech-to-Text and Text-to-Speech to enable real-time spoken audio practice and pronunciation scoring.
-* **Offline Quiz Mode**: Room database caching for offline practice access when network connectivity is unavailable.
-* **Progress Analytics Dashboard**: Detailed charts tracking grammar accuracy and vocabulary growth over time.
+4. **Build & Run**:
+   Open in Android Studio, sync Gradle, and run on device/emulator (API 26+).
 
 ---
 
 ## 👤 Author
 
-**Komal**  
-Final-Year B.Tech Student | Software & Android Developer
+**Komal Rathod**  
+Final-Year B.Tech Student in Information Technology | Android Developer  
 
-* **GitHub**: [@itsKomal1508](https://github.com/itsKomal1508)
-* **LinkedIn**: [Connect on LinkedIn](https://www.linkedin.com/in/komal-achut-rathod/)
+- 🔗 **LinkedIn**: [linkedin.com/in/komal-achut-rathod](https://www.linkedin.com/in/komal-achut-rathod)
+- 🐙 **GitHub**: [github.com/itsKomal1508](https://github.com/itsKomal1508)
+- 💻 **LeetCode**: [leetcode.com/u/Komal_rathod15](https://leetcode.com/u/Komal_rathod15/)

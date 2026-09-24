@@ -31,19 +31,32 @@ class SubmitQuizAnswersUseCase @Inject constructor(
         val evalResult = quizRepository.evaluateQuiz(quiz, userAnswers)
 
         evalResult.onSuccess { result ->
-            val currentUser = authRepository.currentUser.firstOrNull()
+            val currentUser = authRepository.getOrAwaitUser()
             if (currentUser != null && currentUser.uid.isNotBlank()) {
+                val userId = currentUser.uid
                 // 1. Record daily activity for streak tracking
-                recordDailyActivityUseCase(currentUser.uid)
+                val streakRes = recordDailyActivityUseCase(userId)
+                streakRes.onFailure { err ->
+                    android.util.Log.e("SubmitQuizAnswers", "Failed to update streak for user $userId", err)
+                }
 
-                // 2. Save mistakes if present
+                // 2. Save mistakes if present with source = "quiz"
                 if (result.mistakes.isNotEmpty()) {
-                    mistakeRepository.saveMistakes(currentUser.uid, result.mistakes)
+                    val formattedMistakes = result.mistakes.map { m ->
+                        m.copy(
+                            source = "quiz",
+                            questionTopic = m.category
+                        )
+                    }
+                    val mistakeRes = mistakeRepository.saveMistakes(userId, formattedMistakes)
+                    mistakeRes.onFailure { err ->
+                        android.util.Log.e("SubmitQuizAnswers", "Failed to save ${formattedMistakes.size} mistakes to history", err)
+                    }
                 }
 
                 // 3. Save quiz attempt history to Firestore
                 val attempt = QuizAttempt(
-                    userId = currentUser.uid,
+                    userId = userId,
                     timestamp = System.currentTimeMillis(),
                     score = result.score,
                     correctCount = result.correctCount,
@@ -51,7 +64,12 @@ class SubmitQuizAnswersUseCase @Inject constructor(
                     category = quiz.category,
                     mistakesCount = result.mistakes.size
                 )
-                quizRepository.saveQuizAttempt(currentUser.uid, attempt)
+                val attemptRes = quizRepository.saveQuizAttempt(userId, attempt)
+                attemptRes.onFailure { err ->
+                    android.util.Log.e("SubmitQuizAnswers", "Failed to save quiz attempt for user $userId", err)
+                }
+            } else {
+                android.util.Log.w("SubmitQuizAnswers", "Skipping persistence: No active user profile returned")
             }
         }
 

@@ -36,7 +36,8 @@ class QuizRepositoryImpl @Inject constructor(
         val listener = firestore.collection("quizzes")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.e("QuizRepository", "Firestore error reading quizzes", error)
+                    trySend(listOf(getComprehensiveQuizPool()))
                     return@addSnapshotListener
                 }
 

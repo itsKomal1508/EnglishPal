@@ -14,29 +14,29 @@ import javax.inject.Singleton
 
 @Singleton
 class StreakRepositoryImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val localVault: com.englishpal.app.data.datasource.LocalPreferencesVault
 ) : StreakRepository {
 
     override fun getStreakInfo(userId: String): Flow<StreakInfo> = callbackFlow {
-        if (userId.isBlank()) {
-            trySend(StreakInfo())
-            close()
-            return@callbackFlow
-        }
+        // Emit local streak info immediately
+        val localStreak = localVault.getLocalStreak()
+        trySend(localStreak)
+
+        val targetUserId = userId.ifBlank { localVault.getOrCreateLocalUserId() }
 
         val listener = firestore.collection("users")
-            .document(userId)
+            .document(targetUserId)
             .collection("streak")
             .document("info")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    android.util.Log.e("StreakRepository", "Firestore error reading streak info for '$targetUserId'. Using local streak.", error)
+                    trySend(localVault.getLocalStreak())
                     return@addSnapshotListener
                 }
 
-                if (snapshot == null || !snapshot.exists()) {
-                    trySend(StreakInfo())
-                } else {
+                if (snapshot != null && snapshot.exists()) {
                     val lastActiveDate = snapshot.getString("lastActiveDate") ?: ""
                     val rawCurrentStreak = (snapshot.getLong("currentStreak") ?: 0L).toInt()
                     val longestStreak = (snapshot.getLong("longestStreak") ?: 0L).toInt()
@@ -44,23 +44,28 @@ class StreakRepositoryImpl @Inject constructor(
 
                     val today = getTodayDateString()
                     val yesterday = getYesterdayDateString()
-
                     val isCompletedToday = lastActiveDate == today
-                    // Handle streak broken logic
                     val currentStreak = when (lastActiveDate) {
                         today, yesterday -> rawCurrentStreak
                         else -> 0
                     }
 
-                    trySend(
-                        StreakInfo(
-                            currentStreak = currentStreak,
-                            longestStreak = longestStreak,
-                            lastActiveDate = lastActiveDate,
-                            completedDates = completedDates,
-                            isCompletedToday = isCompletedToday
-                        )
+                    val remoteStreak = StreakInfo(
+                        currentStreak = currentStreak,
+                        longestStreak = longestStreak,
+                        lastActiveDate = lastActiveDate,
+                        completedDates = completedDates,
+                        isCompletedToday = isCompletedToday
                     )
+                    // Take higher streak between local and remote
+                    val localCurrent = localVault.getLocalStreak()
+                    if (remoteStreak.currentStreak >= localCurrent.currentStreak) {
+                        trySend(remoteStreak)
+                    } else {
+                        trySend(localCurrent)
+                    }
+                } else {
+                    trySend(localVault.getLocalStreak())
                 }
             }
 
@@ -68,67 +73,34 @@ class StreakRepositoryImpl @Inject constructor(
     }
 
     override suspend fun recordDailyActivity(userId: String): Result<StreakInfo> {
-        if (userId.isBlank()) return Result.failure(IllegalArgumentException("User ID invalid"))
+        // 1. ALWAYS record activity locally on device disk immediately
+        val updatedLocalStreak = localVault.recordLocalDailyActivity()
+        android.util.Log.d("StreakRepository", "Recorded local daily activity: currentStreak=${updatedLocalStreak.currentStreak}")
 
-        return try {
+        val targetUserId = userId.ifBlank { localVault.getOrCreateLocalUserId() }
+
+        // 2. Async sync to Firestore
+        try {
             val docRef = firestore.collection("users")
-                .document(userId)
+                .document(targetUserId)
                 .collection("streak")
                 .document("info")
 
-            val snapshot = docRef.get().await()
             val today = getTodayDateString()
-            val yesterday = getYesterdayDateString()
-
-            val storedLastActiveDate = snapshot.getString("lastActiveDate") ?: ""
-            val storedCurrentStreak = (snapshot.getLong("currentStreak") ?: 0L).toInt()
-            val storedLongestStreak = (snapshot.getLong("longestStreak") ?: 0L).toInt()
-            val storedCompletedDates = (snapshot.get("completedDates") as? List<String>) ?: emptyList()
-
-            // If already completed today, no change needed
-            if (storedLastActiveDate == today) {
-                return Result.success(
-                    StreakInfo(
-                        currentStreak = storedCurrentStreak,
-                        longestStreak = storedLongestStreak,
-                        lastActiveDate = today,
-                        completedDates = storedCompletedDates,
-                        isCompletedToday = true
-                    )
-                )
-            }
-
-            // Determine new streak based on whether streak was maintained yesterday or broken
-            val newCurrentStreak = if (storedLastActiveDate == yesterday) {
-                storedCurrentStreak + 1
-            } else {
-                1 // Streak broken or first activity
-            }
-
-            val newLongestStreak = maxOf(storedLongestStreak, newCurrentStreak)
-            val updatedCompletedDates = (storedCompletedDates + today).distinct()
-
             val updatedMap = hashMapOf(
-                "currentStreak" to newCurrentStreak,
-                "longestStreak" to newLongestStreak,
+                "currentStreak" to updatedLocalStreak.currentStreak,
+                "longestStreak" to updatedLocalStreak.longestStreak,
                 "lastActiveDate" to today,
-                "completedDates" to updatedCompletedDates
+                "completedDates" to updatedLocalStreak.completedDates
             )
 
             docRef.set(updatedMap).await()
-
-            val updatedInfo = StreakInfo(
-                currentStreak = newCurrentStreak,
-                longestStreak = newLongestStreak,
-                lastActiveDate = today,
-                completedDates = updatedCompletedDates,
-                isCompletedToday = true
-            )
-
-            Result.success(updatedInfo)
+            android.util.Log.d("StreakRepository", "Synced streak to Firestore for user '$targetUserId': currentStreak=${updatedLocalStreak.currentStreak}")
         } catch (e: Exception) {
-            Result.failure(e)
+            android.util.Log.w("StreakRepository", "Remote Firestore sync warning for streak (local copy preserved): ${e.message}")
         }
+
+        return Result.success(updatedLocalStreak)
     }
 
     private fun getTodayDateString(): String {

@@ -104,7 +104,6 @@ app/src/main/java/com/englishpal/app/
    ```
    EnglishPal/app/google-services.json
    ```
-
 4. **Build & Run**:
    Open in Android Studio, sync Gradle, and run on device/emulator (API 26+).
 

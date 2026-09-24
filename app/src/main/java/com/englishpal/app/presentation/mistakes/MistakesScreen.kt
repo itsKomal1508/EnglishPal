@@ -210,12 +210,40 @@ fun MistakesScreen(
                                     )
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Text(
-                                        text = "${summary.topWeakPercentage}% of your mistakes are ${summary.topWeakCategory}-related!",
+                                        text = "${summary.topWeakPercentage}% of your recorded gaps are ${summary.topWeakCategory}-related!",
                                         style = MaterialTheme.typography.titleMedium.copy(
                                             fontSize = 15.sp,
                                             fontWeight = FontWeight.ExtraBold
                                         ),
                                         color = CoralDark
+                                    )
+                                }
+                            }
+
+                            // Focus Next Recommendation Banner
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Lightbulb,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = summary.recommendedFocus,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = 13.sp
+                                        ),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                             }
@@ -232,17 +260,34 @@ fun MistakesScreen(
                                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
                                             text = cat.category,
                                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                                         )
-                                        Text(
-                                            text = "${cat.count} mistakes (${cat.percentage}%)",
-                                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = if (cat.trend.contains("Improving")) EmeraldMint.copy(alpha = 0.15f) else CoralPink.copy(alpha = 0.15f)
+                                            ) {
+                                                Text(
+                                                    text = cat.trend,
+                                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                                    color = if (cat.trend.contains("Improving")) EmeraldMint else CoralDark,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                            Text(
+                                                text = "${cat.count} mistakes (${cat.percentage}%)",
+                                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
                                     AnimatedProgressBar(progress = cat.progress)
                                 }
@@ -281,6 +326,11 @@ fun MistakesScreen(
                     val dateString = remember(mistake.timestamp) {
                         SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault()).format(Date(mistake.timestamp))
                     }
+                    val sourceLabel = when (mistake.source.lowercase()) {
+                        "mock_interview" -> "Mock Interview 🎤"
+                        "chat" -> "AI Chat 💬"
+                        else -> "Quiz 📝"
+                    }
                     var isExpanded by remember { mutableStateOf(false) }
 
                     PlayfulCard(
@@ -297,16 +347,32 @@ fun MistakesScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = CoralPink.copy(alpha = 0.15f)
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = mistake.category,
-                                        color = CoralDark,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = CoralPink.copy(alpha = 0.15f)
+                                    ) {
+                                        Text(
+                                            text = mistake.category,
+                                            color = CoralDark,
+                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+                                    ) {
+                                        Text(
+                                            text = sourceLabel,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
                                 }
                                 Text(
                                     text = dateString,

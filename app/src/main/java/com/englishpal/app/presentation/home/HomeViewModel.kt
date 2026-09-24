@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import kotlinx.coroutines.flow.catch
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val authRepository: AuthRepository,
@@ -37,40 +39,54 @@ class HomeViewModel @Inject constructor(
 
     private fun observeCurrentUserAndData() {
         viewModelScope.launch {
-            authRepository.currentUser.collect { user ->
-                val currentUid = user?.uid ?: ""
-                Log.d("HomeViewModel", "Active FirebaseAuth UID on Home load: '$currentUid'")
-                streakJob?.cancel()
-                lastQuizJob?.cancel()
+            authRepository.currentUser
+                .catch { e ->
+                    Log.e("HomeViewModel", "Error in currentUser flow", e)
+                }
+                .collect { flowUser ->
+                    val user = flowUser ?: authRepository.getOrAwaitUser()
+                    val currentUid = user?.uid ?: ""
+                    Log.d("HomeViewModel", "Active FirebaseAuth UID on Home load: '$currentUid'")
+                    streakJob?.cancel()
+                    lastQuizJob?.cancel()
 
-                if (user == null || user.uid.isBlank()) {
-                    _uiState.value = HomeUiState()
-                } else {
-                    _uiState.value = HomeUiState(userProfile = user, streakInfo = StreakInfo())
+                    if (user == null || user.uid.isBlank()) {
+                        _uiState.value = HomeUiState()
+                    } else {
+                        _uiState.value = HomeUiState(userProfile = user, streakInfo = StreakInfo())
+                        recordActivity()
 
-                    // 1. Observe current user's streak document
-                    streakJob = viewModelScope.launch {
-                        getStreakInfoUseCase(user.uid).collect { streak ->
-                            _uiState.update { state ->
-                                if (state.userProfile?.uid == currentUid) {
-                                    state.copy(streakInfo = streak)
-                                } else state
-                            }
+                        // 1. Observe current user's streak document
+                        streakJob = viewModelScope.launch {
+                            getStreakInfoUseCase(user.uid)
+                                .catch { e ->
+                                    Log.e("HomeViewModel", "Error loading streak info", e)
+                                }
+                                .collect { streak ->
+                                    _uiState.update { state ->
+                                        if (state.userProfile?.uid == currentUid) {
+                                            state.copy(streakInfo = streak)
+                                        } else state
+                                    }
+                                }
                         }
-                    }
 
-                    // 2. Observe current user's latest quiz attempt
-                    lastQuizJob = viewModelScope.launch {
-                        getLastQuizAttemptUseCase().collect { attempt ->
-                            _uiState.update { state ->
-                                if (state.userProfile?.uid == currentUid) {
-                                    state.copy(lastQuizAttempt = attempt)
-                                } else state
-                            }
+                        // 2. Observe current user's latest quiz attempt
+                        lastQuizJob = viewModelScope.launch {
+                            getLastQuizAttemptUseCase()
+                                .catch { e ->
+                                    Log.e("HomeViewModel", "Error loading last quiz attempt", e)
+                                }
+                                .collect { attempt ->
+                                    _uiState.update { state ->
+                                        if (state.userProfile?.uid == currentUid) {
+                                            state.copy(lastQuizAttempt = attempt)
+                                        } else state
+                                    }
+                                }
                         }
                     }
                 }
-            }
         }
     }
 

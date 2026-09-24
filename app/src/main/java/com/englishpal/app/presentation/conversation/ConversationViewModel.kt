@@ -35,18 +35,25 @@ class ConversationViewModel @Inject constructor(
     private fun observeMessages() {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            authRepository.currentUser.collect { user ->
-                if (user != null && user.uid.isNotBlank()) {
-                    currentUserId = user.uid
-                    getConversationMessagesUseCase(user.uid).collect { list ->
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                messages = list
-                            )
+            val initialUser = authRepository.getOrAwaitUser()
+            if (initialUser != null && initialUser.uid.isNotBlank()) {
+                currentUserId = initialUser.uid
+                getConversationMessagesUseCase(initialUser.uid).collect { list ->
+                    _uiState.update { state ->
+                        // Preserve optimistic messages if Firestore stream has not caught up yet
+                        val merged = if (state.isSending) {
+                            (list + state.messages).distinctBy { it.id }
+                        } else {
+                            list
                         }
+                        state.copy(
+                            isLoading = false,
+                            messages = merged
+                        )
                     }
                 }
+            } else {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
@@ -61,34 +68,70 @@ class ConversationViewModel @Inject constructor(
             Log.w("GeminiConversation", "sendMessage ignored: input text is blank")
             return
         }
-        if (currentUserId.isBlank()) {
-            Log.e("GeminiConversation", "sendMessage failed: currentUserId is blank")
-            _uiState.update { it.copy(errorMessage = "User session invalid. Please log in again.") }
-            return
-        }
-
-        Log.d("GeminiConversation", "1. User initiated send message: '$textToSend', userId: '$currentUserId'")
-        val history = _uiState.value.messages
-        _uiState.update { it.copy(inputText = "", isSending = true, errorMessage = null) }
 
         viewModelScope.launch {
-            val result = sendChatMessageUseCase(currentUserId, history, textToSend)
+            val user = if (currentUserId.isNotBlank()) {
+                com.englishpal.app.domain.model.UserProfile(uid = currentUserId, email = "", displayName = "")
+            } else {
+                authRepository.getOrAwaitUser()
+            }
+
+            val userId = user?.uid ?: ""
+            if (userId.isBlank()) {
+                Log.e("GeminiConversation", "sendMessage failed: could not resolve active userId")
+                _uiState.update { it.copy(errorMessage = "User session invalid. Please check connection.") }
+                return@launch
+            }
+            currentUserId = userId
+
+            Log.d("GeminiConversation", "1. Optimistic UI: Appending user message '$textToSend' for userId '$userId'")
+            val userMsg = com.englishpal.app.domain.model.ChatMessage(
+                id = java.util.UUID.randomUUID().toString(),
+                sender = "user",
+                text = textToSend,
+                timestamp = System.currentTimeMillis()
+            )
+
+            val history = _uiState.value.messages
+            val updatedMessages = history + userMsg
+
+            _uiState.update {
+                it.copy(
+                    inputText = "",
+                    isSending = true,
+                    errorMessage = null,
+                    messages = updatedMessages
+                )
+            }
+
+            val result = sendChatMessageUseCase(userId, history, textToSend)
             result.fold(
                 onSuccess = { aiMsg ->
-                    Log.d("GeminiConversation", "4. Message send completed successfully. AI Message ID: ${aiMsg.id}")
-                    _uiState.update { it.copy(isSending = false) }
+                    Log.d("GeminiConversation", "4. Message send completed. AI Message ID: ${aiMsg.id}")
+                    _uiState.update { state ->
+                        val currentList = state.messages
+                        val finalMessages = if (currentList.any { it.id == aiMsg.id }) {
+                            currentList
+                        } else {
+                            currentList + aiMsg
+                        }
+                        state.copy(
+                            isSending = false,
+                            messages = finalMessages
+                        )
+                    }
                 },
                 onFailure = { err ->
                     val rawMsg = err.localizedMessage.takeIf { !it.isNullOrBlank() }
                         ?: err.message.takeIf { !it.isNullOrBlank() }
                         ?: "Failed to get AI response."
-                    Log.e("GeminiConversation", "4. Message send FAILED (raw error): $rawMsg", err)
+                    Log.e("GeminiConversation", "4. Message send FAILED: $rawMsg", err)
 
                     val friendlyMsg = formatUserFriendlyError(rawMsg)
-                    _uiState.update {
-                        it.copy(
+                    _uiState.update { state ->
+                        state.copy(
                             isSending = false,
-                            errorMessage = friendlyMsg
+                            errorMessage = "Message failed to send — $friendlyMsg"
                         )
                     }
                 }
@@ -109,7 +152,7 @@ class ConversationViewModel @Inject constructor(
                 }
             }
             lower.contains("404") || lower.contains("not found") -> {
-                "AI Model endpoint error (404). Model name updated to gemini-1.5-flash-latest."
+                "AI Model endpoint error (404). Model name updated to gemini-3.6-flash."
             }
             lower.contains("api key not valid") || lower.contains("api_key_invalid") || lower.contains("invalid api key") -> {
                 "Invalid Gemini API Key. Please update GEMINI_API_KEY in local.properties."

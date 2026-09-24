@@ -7,14 +7,21 @@ plugins {
     id("com.google.gms.google-services")
     id("kotlin-kapt")
 }
-
 // ── Read local.properties so GEMINI_API_KEY is never hard-coded in source ──
-val localProperties = Properties().also { props ->
+val localProperties = Properties().apply {
     val localPropsFile = rootProject.file("local.properties")
     if (localPropsFile.exists()) {
-        props.load(localPropsFile.inputStream())
+        load(localPropsFile.inputStream())
     }
 }
+
+val key1 = localProperties.getProperty("GEMINI_API_KEY", "").trim()
+val key2 = localProperties.getProperty("GEMINI_API_KEY_2", "").trim()
+val key3 = localProperties.getProperty("GEMINI_API_KEY_3", "").trim()
+
+val allGeminiKeys = listOf(key1, key2, key3)
+    .filter { it.isNotBlank() }
+    .joinToString(",")
 
 android {
     namespace = "com.englishpal.app"
@@ -32,11 +39,10 @@ android {
             useSupportLibrary = true
         }
 
-        // Inject the key as a BuildConfig field — accessible as BuildConfig.GEMINI_API_KEY
         buildConfigField(
             "String",
             "GEMINI_API_KEY",
-            "\"${localProperties.getProperty("GEMINI_API_KEY", "")}\""
+            "\"$allGeminiKeys\""
         )
     }
 
@@ -58,7 +64,7 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true   // required for BuildConfig field generation
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.11"
@@ -98,14 +104,14 @@ dependencies {
     kapt("com.google.dagger:hilt-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Firebase BOM & Services (functions-ktx removed — AI calls now go directly to Gemini)
+    // Firebase BOM & Services
     val firebaseBom = platform("com.google.firebase:firebase-bom:33.0.0")
     implementation(firebaseBom)
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.android.gms:play-services-auth:21.1.1")
 
-    // Google AI (Gemini) SDK for Android — direct API calls, no Cloud Functions required
+    // Google AI (Gemini) SDK for Android
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     // Coroutines

@@ -29,9 +29,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         // Determine initial route based on authentication state
-        val startDestination = if (authRepository.isUserLoggedIn()) {
-            Screen.Home.route
-        } else {
+        val startDestination = try {
+            if (authRepository.isUserLoggedIn()) {
+                Screen.Home.route
+            } else {
+                Screen.Auth.route
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error checking login status", e)
             Screen.Auth.route
         }
 

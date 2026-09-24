@@ -48,9 +48,18 @@ object InterviewQuestionBank {
 
     fun getQuestionForStage(stage: InterviewStage, candidateText: String): Triple<String, String, String> {
         val lower = candidateText.lowercase().trim()
+        val isGreetingOnly = lower.matches(Regex("""^\s*(hi|hello|hey|greetings|good morning|good evening|good afternoon)\s*!*${'$'}""", RegexOption.IGNORE_CASE))
         val isNonAnswer = lower.contains("don't have idea") || lower.contains("no idea") || 
                           lower.contains("don't know") || lower.contains("not sure") || 
-                          lower.contains("idk") || lower.length < 15
+                          lower.contains("idk") || lower.length < 10
+
+        if (stage == InterviewStage.INTRO || isGreetingOnly) {
+            return Triple(
+                "Hello! Thanks for joining the interview today. To get started, could you introduce yourself and share a bit about your software engineering background?",
+                "Candidate greeted the interviewer.",
+                "Friendly and professional greeting."
+            )
+        }
 
         return when (stage) {
             InterviewStage.TECHNICAL -> {
@@ -63,7 +72,7 @@ object InterviewQuestionBank {
                 }
                 val selectedQ = pool.random(Random(System.currentTimeMillis()))
                 Triple(
-                    "Thank you for introducing yourself! $selectedQ",
+                    "Thank you for sharing your background! Moving into technical depth: $selectedQ",
                     "Candidate introduced their background and technical focus areas.",
                     "Phrased engineering background clearly."
                 )

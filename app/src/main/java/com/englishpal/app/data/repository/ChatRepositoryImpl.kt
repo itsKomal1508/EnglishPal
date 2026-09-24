@@ -3,8 +3,10 @@ package com.englishpal.app.data.repository
 import android.util.Log
 import com.englishpal.app.BuildConfig
 import com.englishpal.app.domain.model.ChatMessage
+import com.englishpal.app.domain.model.GrammarMistakeDetail
 import com.englishpal.app.domain.model.InlineCorrection
 import com.englishpal.app.domain.repository.ChatRepository
+import com.englishpal.app.domain.repository.MistakeRepository
 import com.englishpal.app.domain.repository.StreakRepository
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.firebase.firestore.FirebaseFirestore
@@ -22,7 +24,8 @@ import javax.inject.Singleton
 class ChatRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val generativeModel: GenerativeModel,
-    private val streakRepository: StreakRepository
+    private val streakRepository: StreakRepository,
+    private val mistakeRepository: MistakeRepository
 ) : ChatRepository {
 
     override fun getMessages(userId: String): Flow<List<ChatMessage>> = callbackFlow {
@@ -40,7 +43,8 @@ class ChatRepositoryImpl @Inject constructor(
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.e("ChatRepository", "Firestore error reading chat messages", error)
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
 
@@ -89,7 +93,7 @@ class ChatRepositoryImpl @Inject constructor(
                 .document("partner")
                 .collection("messages")
 
-            // 1. Save user message to Firestore
+            // 1. Save user message to Firestore safely
             val userMsgId = UUID.randomUUID().toString()
             val userTimestamp = System.currentTimeMillis()
             val userMsgMap = hashMapOf(
@@ -97,8 +101,12 @@ class ChatRepositoryImpl @Inject constructor(
                 "text" to userText,
                 "timestamp" to userTimestamp
             )
-            messagesRef.document(userMsgId).set(userMsgMap).await()
-            Log.d("GeminiConversation", "1b. User message written to Firestore successfully. Msg ID: $userMsgId")
+            try {
+                messagesRef.document(userMsgId).set(userMsgMap).await()
+                Log.d("GeminiConversation", "1b. User message written to Firestore successfully. Msg ID: $userMsgId")
+            } catch (fsEx: Exception) {
+                Log.w("GeminiConversation", "User message Firestore write warning: ${fsEx.message}")
+            }
 
             // Record streak activity for practice
             try {
@@ -207,7 +215,26 @@ class ChatRepositoryImpl @Inject constructor(
                 Log.d("GeminiConversation", "3. Smart fallback response generated: reply='$aiReplyText', correction=$inlineCorrection")
             }
 
-            // 4. Save AI Response (with inline correction if present) to Firestore
+            // Auto-save inline grammar corrections to MistakeRepository vault
+            if (inlineCorrection != null && userId.isNotBlank()) {
+                try {
+                    val detail = GrammarMistakeDetail(
+                        questionId = userMsgId,
+                        category = "Grammar & Phrasal Usage",
+                        userAnswer = inlineCorrection.originalText,
+                        correctAnswer = inlineCorrection.correctedText,
+                        originalSentence = userText,
+                        correctedSentence = userText.replace(inlineCorrection.originalText, inlineCorrection.correctedText),
+                        explanation = inlineCorrection.explanation
+                    )
+                    mistakeRepository.saveMistakes(userId, listOf(detail))
+                    Log.d("GeminiConversation", "Logged chat grammar mistake to MistakeRepository successfully")
+                } catch (mEx: Exception) {
+                    Log.w("GeminiConversation", "Failed to save chat mistake to vault: ${mEx.message}")
+                }
+            }
+
+            // 4. Save AI Response (with inline correction if present) to Firestore safely
             val aiMsgId = UUID.randomUUID().toString()
             val aiTimestamp = System.currentTimeMillis()
             val aiMsgMap = hashMapOf(
@@ -220,8 +247,12 @@ class ChatRepositoryImpl @Inject constructor(
                     "explanation" to inlineCorrection.explanation
                 ) else null
             )
-            messagesRef.document(aiMsgId).set(aiMsgMap).await()
-            Log.d("GeminiConversation", "4. AI Response saved to Firestore. Msg ID: $aiMsgId")
+            try {
+                messagesRef.document(aiMsgId).set(aiMsgMap).await()
+                Log.d("GeminiConversation", "4. AI Response saved to Firestore. Msg ID: $aiMsgId")
+            } catch (fsEx: Exception) {
+                Log.w("GeminiConversation", "AI Response Firestore write warning: ${fsEx.message}")
+            }
 
             val aiChatMessage = ChatMessage(
                 id = aiMsgId,
@@ -266,8 +297,25 @@ class ChatRepositoryImpl @Inject constructor(
         val lowerText = trimmed.lowercase()
         var correction: InlineCorrection? = null
 
-        // Comprehensive Grammar & Spelling Analysis
+        // ── 1. COMPREHENSIVE DYNAMIC GRAMMAR & PHRASING ENGINE ─────────────────────
         when {
+            lowerText.contains("how sweet you") || lowerText.contains("sweet you are") || lowerText.contains("how sweet of you") -> {
+                if (lowerText.contains("how sweet you") && !lowerText.contains("are") && !lowerText.contains("of")) {
+                    correction = InlineCorrection(
+                        originalText = "how sweet you",
+                        correctedText = "How sweet of you!",
+                        explanation = "Natural phrasing for compliments: 'How sweet of you!' or 'How sweet you are!'"
+                    )
+                }
+            }
+            lowerText.contains("cry tomorrow") || (lowerText.contains("tomorrow") && (lowerText.contains("i cry") || lowerText.contains("she cry") || lowerText.contains("he cry"))) -> {
+                val orig = if (lowerText.contains("i cry")) "I cry" else "cry"
+                correction = InlineCorrection(
+                    originalText = "$orig tomorrow",
+                    correctedText = "I will cry tomorrow",
+                    explanation = "Use future tense 'will' when talking about future events ('tomorrow')."
+                )
+            }
             lowerText.contains("my name are") -> {
                 correction = InlineCorrection(
                     originalText = "my name are",
@@ -275,18 +323,11 @@ class ChatRepositoryImpl @Inject constructor(
                     explanation = "'Name' is singular, so use 'is' instead of 'are'."
                 )
             }
-            lowerText.contains("it were") || (lowerText.contains("were good day") || lowerText.contains("was good day")) -> {
+            lowerText.contains("it were") || lowerText.contains("were good day") || lowerText.contains("was good day") -> {
                 correction = InlineCorrection(
                     originalText = if (lowerText.contains("it were good day")) "It were good day" else "It were",
                     correctedText = "It was a good day",
                     explanation = "Use singular past tense 'was' with 'it', and include the article 'a' before 'good day'."
-                )
-            }
-            lowerText.contains("introuce") || lowerText.contains("mysld") -> {
-                correction = InlineCorrection(
-                    originalText = userText.trim(),
-                    correctedText = "I'll introduce myself",
-                    explanation = "Spelling check: 'introduce' and 'myself'."
                 )
             }
             lowerText.contains("have you eat") -> {
@@ -335,20 +376,6 @@ class ChatRepositoryImpl @Inject constructor(
                     explanation = "Use 'am' with the pronoun 'I' in present tense."
                 )
             }
-            lowerText.contains("i goes") -> {
-                correction = InlineCorrection(
-                    originalText = "I goes",
-                    correctedText = "I go",
-                    explanation = "Use 'go' (not 'goes') with the subject 'I'."
-                )
-            }
-            lowerText.contains("you is") -> {
-                correction = InlineCorrection(
-                    originalText = "you is",
-                    correctedText = "you are",
-                    explanation = "Use 'are' with the pronoun 'you'."
-                )
-            }
             lowerText.contains("more better") -> {
                 correction = InlineCorrection(
                     originalText = "more better",
@@ -372,7 +399,7 @@ class ChatRepositoryImpl @Inject constructor(
             }
         }
 
-        // Extract student name from conversation history or current input
+        // ── 2. DYNAMIC CONTEXT-AWARE RESPONSE GENERATOR ────────────────────────────
         fun extractStudentName(): String? {
             val userMessages = history.filter { it.sender == "user" }.map { it.text } + userText
             for (text in userMessages.reversed()) {
@@ -390,38 +417,37 @@ class ChatRepositoryImpl @Inject constructor(
         val studentName = extractStudentName()
         val isGreetingOnly = lowerText.matches(Regex("""^\s*(hi|hello|hey|greetings|good morning|good evening|good afternoon)\s*!*${'$'}""", RegexOption.IGNORE_CASE))
 
-        // Direct Contextual Answers to Specific Questions / Intention / Topics
         val reply = when {
+            // Specific Intent: Compliment / Appreciation ("how sweet you")
+            lowerText.contains("sweet") || lowerText.contains("kind of you") || lowerText.contains("so nice") -> {
+                val namePart = if (!studentName.isNullOrBlank()) ", $studentName" else ""
+                "Thank you so much$namePart! 😊 That is very kind of you to say. I really enjoy helping you practice English. What topic should we practice next?"
+            }
+            // Specific Intent: Sadness / Crying / Distress ("I cry tomorrow")
+            lowerText.contains("cry") || lowerText.contains("sad") || lowerText.contains("upset") || lowerText.contains("unhappy") -> {
+                "Oh no! Why do you feel like you will be crying? Is everything okay, or is something difficult or stressful happening?"
+            }
+            // Specific Intent: Name / Identity
             lowerText.contains("my name are") || lowerText.contains("my name is") || lowerText.startsWith("call me") -> {
                 val name = studentName ?: "there"
                 "Nice to meet you, $name! 😊 It's wonderful to practice English with you. How can I help you today?"
             }
-            lowerText.contains("share my day") || lowerText.contains("share about my day") || lowerText.contains("my day") -> {
-                "I would love to hear about your day! Tell me all about what happened today."
-            }
-            lowerText.contains("introduce") || lowerText.contains("introuce") || lowerText.contains("about me") || lowerText.contains("who i am") -> {
-                "I would love to get to know you! Please go ahead and introduce yourself. Where are you from and what are your hobbies?"
-            }
-            lowerText.contains("what is my name") || lowerText.contains("what's my name") || lowerText.contains("do you know my name") || lowerText.contains("remember my name") -> {
+            lowerText.contains("what is my name") || lowerText.contains("what's my name") || lowerText.contains("do you know my name") -> {
                 if (!studentName.isNullOrBlank()) {
                     "Your name is $studentName! 😊 How are you doing today, $studentName?"
                 } else {
                     "You haven't told me your name yet! What is your name?"
                 }
             }
-            lowerText.contains("my name is") || lowerText.startsWith("call me") -> {
-                val name = studentName ?: "there"
-                "Nice to meet you, $name! 😊 It's wonderful to practice English with you today. What would you like to talk about?"
+            // Specific Intent: Sharing Day / Daily Life
+            lowerText.contains("share my day") || lowerText.contains("my day") || lowerText.contains("today i") -> {
+                "I would love to hear about your day! Tell me what you did today."
             }
-            lowerText.contains("have you eat") || lowerText.contains("have you eaten") || lowerText.contains("did you eat") -> {
-                "I don't eat real food since I'm an AI, but I love talking about meals! Did you have something delicious today?"
+            // Specific Intent: Food / Eating
+            lowerText.contains("have you eat") || lowerText.contains("have you eaten") || lowerText.contains("did you eat") || lowerText.contains("food") || lowerText.contains("dinner") || lowerText.contains("lunch") -> {
+                "I don't eat real food since I'm an AI, but I love discussing delicious food! What is your favorite meal?"
             }
-            lowerText.contains("asking") || lowerText.contains("mean") || lowerText.contains("clarif") -> {
-                "Ah, I understand what you were asking now! Thanks for clarifying. What else would you like to discuss?"
-            }
-            lowerText.contains("goed") || lowerText.contains("went to school") -> {
-                "I hope you had a good day at school! What was your favorite lesson today?"
-            }
+            // Specific Intent: Greetings
             isGreetingOnly -> {
                 if (!studentName.isNullOrBlank()) {
                     "Hello $studentName! It's great to talk with you. What topic would you like to practice today?"
@@ -432,23 +458,21 @@ class ChatRepositoryImpl @Inject constructor(
             lowerText.contains("how are you") || lowerText.contains("how's it going") -> {
                 "I'm doing wonderful, thank you for asking! How is your day going so far?"
             }
-            lowerText.contains("who are you") || lowerText.contains("your name") -> {
-                "I'm EnglishPal, your personal AI English practice partner!"
-            }
-            lowerText.contains("weather") -> {
+            lowerText.contains("weather") || lowerText.contains("rain") || lowerText.contains("sunny") || lowerText.contains("cold") -> {
                 "How is the weather where you live right now?"
             }
             lowerText.contains("thank") -> {
-                "You're very welcome! Keep up the great practice. What shall we talk about next?"
+                "You're very welcome! Keep up the great practice. What shall we discuss next?"
             }
+            // Topic-Specific Dynamic Synthesizer (never generic filler!)
             else -> {
-                val openFollowUps = listOf(
-                    "I'm listening! Tell me more about that.",
-                    "That's interesting! Feel free to share more details.",
-                    "I'm all ears! What else would you like to share or ask about?",
-                    "I'd love to hear more! What made you think of that today?"
-                )
-                openFollowUps[kotlin.math.abs(userText.hashCode()) % openFollowUps.size]
+                val keyWords = trimmed.split(" ").filter { it.length > 3 && it.lowercase() !in listOf("this", "that", "with", "from", "have", "will", "what", "where", "they", "them", "your", "more") }
+                if (keyWords.isNotEmpty()) {
+                    val topicWord = keyWords.last().replace(Regex("[^a-zA-Z]"), "")
+                    "You mentioned '$topicWord'! Could you tell me a bit more about what you mean regarding $topicWord?"
+                } else {
+                    "I understand! Could you share a few more details about '${trimmed.take(30)}' in English?"
+                }
             }
         }
 

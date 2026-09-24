@@ -165,27 +165,6 @@ fun InterviewScreen(
                                 }
                             }
                         }
-
-                        if (uiState.messages.size >= 3) {
-                            TextButton(
-                                onClick = viewModel::finishAndGenerateReport,
-                                modifier = Modifier.align(Alignment.End),
-                                enabled = !uiState.isSending && !uiState.isEvaluatingReport
-                            ) {
-                                Icon(
-                                    Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    "End Interview & Generate Report Card ⭐",
-                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
                     }
                 }
             }
@@ -199,7 +178,8 @@ fun InterviewScreen(
             // Stage Progress Bar Header
             if (uiState.currentStage != InterviewStage.COMPLETED && uiState.reportCard == null) {
                 InterviewStageProgressBar(
-                    currentStage = uiState.currentStage
+                    currentStage = uiState.currentStage,
+                    messageCount = uiState.messages.size
                 )
             }
 
@@ -227,8 +207,23 @@ fun InterviewScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f)
                         )
-                        TextButton(onClick = viewModel::clearError) {
-                            Text("Dismiss")
+                        Row {
+                            if (uiState.isRetryable) {
+                                TextButton(onClick = viewModel::retryLastAction) {
+                                    Text(
+                                        "Retry 🔄",
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(4.dp))
+                            }
+                            TextButton(onClick = viewModel::clearError) {
+                                Text(
+                                    "Dismiss",
+                                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
+                                )
+                            }
                         }
                     }
                 }
@@ -308,8 +303,8 @@ fun InterviewScreen(
 }
 
 @Composable
-fun InterviewStageProgressBar(currentStage: InterviewStage) {
-    val progress = currentStage.stepNumber.toFloat() / 5f
+fun InterviewStageProgressBar(currentStage: InterviewStage, messageCount: Int) {
+    val questionNumber = (messageCount / 2).coerceAtLeast(1)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -319,22 +314,29 @@ fun InterviewStageProgressBar(currentStage: InterviewStage) {
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Step ${currentStage.stepNumber} of 5: ${currentStage.title}",
+                text = "Question $questionNumber • Phase: ${currentStage.title}",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )
-            Text(
-                text = "${(progress * 100).toInt()}% Complete",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Live Open-Ended 🎙️",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
         }
-        AnimatedProgressBar(progress = progress)
+        AnimatedProgressBar(progress = (questionNumber % 5 + 1) / 5f)
     }
 }
 
@@ -397,47 +399,28 @@ fun InterviewMessageItem(message: InterviewMessage) {
                         lineHeight = 22.sp
                     )
 
-                    // Inline Feedback Notes
-                    if (message.technicalNote != null || message.englishNote != null) {
+                    // Inline English Feedback Note
+                    val hasEngNote = !message.englishNote.isNullOrBlank() && !message.englishNote.equals("null", ignoreCase = true)
+
+                    if (hasEngNote) {
                         Spacer(modifier = Modifier.height(10.dp))
                         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        if (message.technicalNote != null) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.AutoAwesome,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "Tech Insight: ${message.technicalNote}",
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-
-                        if (message.englishNote != null) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.Lightbulb,
-                                    contentDescription = null,
-                                    tint = EmeraldMint,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "English Note: ${message.englishNote}",
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
-                                    color = EmeraldMint,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.Lightbulb,
+                                contentDescription = null,
+                                tint = EmeraldMint,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "English Note: ${message.englishNote}",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
+                                color = EmeraldMint,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }

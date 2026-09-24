@@ -76,6 +76,38 @@ class AuthRepositoryImpl @Inject constructor(
         awaitClose { auth.removeAuthStateListener(listener) }
     }
 
+    override suspend fun getOrAwaitUser(): UserProfile? {
+        val firebaseUser = auth.currentUser
+        if (firebaseUser != null) {
+            val email = firebaseUser.email ?: ""
+            var name = firebaseUser.displayName ?: ""
+            if (name.isBlank() && email.isNotBlank()) {
+                name = email.substringBefore("@").replace(".", " ")
+                    .split(" ")
+                    .joinToString(" ") { word -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } }
+            }
+            return UserProfile(
+                uid = firebaseUser.uid,
+                email = email,
+                displayName = name.ifBlank { "English Learner" },
+                photoUrl = firebaseUser.photoUrl?.toString() ?: ""
+            )
+        }
+        return try {
+            val anonResult = auth.signInAnonymously().await()
+            val anonUser = anonResult.user ?: return null
+            UserProfile(
+                uid = anonUser.uid,
+                email = anonUser.email ?: "",
+                displayName = "Guest Learner",
+                photoUrl = ""
+            )
+        } catch (e: Exception) {
+            Log.e("AuthFlow", "getOrAwaitUser anonymous sign-in failed", e)
+            null
+        }
+    }
+
     override fun isUserLoggedIn(): Boolean = auth.currentUser != null
 
     override suspend fun signInWithEmail(email: String, pass: String): Result<UserProfile> {
@@ -196,11 +228,11 @@ class AuthRepositoryImpl @Inject constructor(
                     val anonResult = auth.signInAnonymously().await()
                     user = anonResult.user
                 } catch (anonEx: Exception) {
-                    Log.w("AuthFlow", "Anonymous sign-in unavailable (${anonEx.message}). Generating fallback profile UID.")
+                    Log.w("AuthFlow", "Anonymous sign-in unavailable (${anonEx.message}).")
                 }
             }
 
-            val uid = user?.uid ?: ("google_user_" + java.util.UUID.nameUUIDFromBytes((email.ifBlank { "user_${System.currentTimeMillis()}" }).toByteArray()).toString().replace("-", "").take(16))
+            val uid = user?.uid ?: ("user_" + java.util.UUID.nameUUIDFromBytes((email.ifBlank { "guest_${System.currentTimeMillis()}" }).toByteArray()).toString().replace("-", "").take(16))
 
             val resolvedName = displayName.ifBlank {
                 if (email.isNotBlank()) {
@@ -209,7 +241,7 @@ class AuthRepositoryImpl @Inject constructor(
                         .split(" ")
                         .joinToString(" ") { word -> word.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() } }
                 } else {
-                    "Google User"
+                    "English Learner"
                 }
             }
 
@@ -232,7 +264,9 @@ class AuthRepositoryImpl @Inject constructor(
                 displayName = resolvedName,
                 photoUrl = photoUrl
             )
-            saveUserProfileToFirestore(profile)
+            if (auth.currentUser != null) {
+                saveUserProfileToFirestore(profile)
+            }
             Log.d("AuthFlow", "signInWithGoogleProfile successful. UID: $uid, Name: '$resolvedName'")
             Result.success(profile)
         } catch (e: Exception) {
@@ -252,6 +286,11 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     private suspend fun saveUserProfileToFirestore(userProfile: UserProfile) {
+        val currentAuthUid = auth.currentUser?.uid
+        if (currentAuthUid.isNullOrBlank() || currentAuthUid != userProfile.uid) {
+            Log.w("AuthFlow", "Skipping Firestore user profile write: active FirebaseAuth UID ($currentAuthUid) does not match profile UID (${userProfile.uid})")
+            return
+        }
         try {
             val userMap = hashMapOf(
                 "uid" to userProfile.uid,

@@ -10,5 +10,7 @@ data class GrammarMistakeDetail(
     val correctAnswer: String = "",
     val originalSentence: String = "",
     val correctedSentence: String = "",
-    val explanation: String = ""
+    val explanation: String = "",
+    val source: String = "quiz",
+    val questionTopic: String = ""
 )

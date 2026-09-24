@@ -28,9 +28,10 @@ class MistakesViewModel @Inject constructor(
     }
 
     private fun loadUserMistakes() {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
-            authRepository.currentUser.collect { user ->
+            try {
+                val user = authRepository.getOrAwaitUser()
                 if (user != null && user.uid.isNotBlank()) {
                     getMistakeHistoryUseCase(user.uid).collect { list ->
                         val summary = getWeakAreaAnalyticsUseCase(list)
@@ -46,13 +47,17 @@ class MistakesViewModel @Inject constructor(
                                 mistakes = list,
                                 filteredMistakes = filtered,
                                 weakAreaSummary = summary,
-                                availableCategories = categories
+                                availableCategories = categories,
+                                errorMessage = null
                             )
                         }
                     }
                 } else {
-                    _uiState.update { it.copy(isLoading = false, mistakes = emptyList()) }
+                    _uiState.update { it.copy(isLoading = false, mistakes = emptyList(), errorMessage = "Could not resolve user session") }
                 }
+            } catch (e: Exception) {
+                android.util.Log.e("MistakesViewModel", "Error loading mistakes history", e)
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Failed to load mistakes: ${e.localizedMessage}") }
             }
         }
     }
@@ -71,7 +76,7 @@ class MistakesViewModel @Inject constructor(
 
     fun clearHistory() {
         viewModelScope.launch {
-            val user = authRepository.currentUser.first()
+            val user = authRepository.getOrAwaitUser()
             if (user != null && user.uid.isNotBlank()) {
                 mistakeRepository.clearMistakes(user.uid)
             }

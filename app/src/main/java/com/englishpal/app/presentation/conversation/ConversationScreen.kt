@@ -138,6 +138,23 @@ fun ConversationScreen(
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                     modifier = Modifier.weight(1f)
                                 )
+                                TextButton(
+                                    onClick = {
+                                        val lastUserMsg = uiState.messages.lastOrNull { it.sender == "user" }?.text
+                                        viewModel.clearError()
+                                        if (!lastUserMsg.isNullOrBlank()) {
+                                            viewModel.onInputTextChanged(lastUserMsg)
+                                            viewModel.sendMessage()
+                                        }
+                                    },
+                                    modifier = Modifier.padding(horizontal = 4.dp)
+                                ) {
+                                    Text(
+                                        "Retry 🔄",
+                                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
                                 IconButton(
                                     onClick = viewModel::clearError,
                                     modifier = Modifier.size(28.dp)

@@ -11,5 +11,8 @@ data class MistakeItem(
     val userAnswer: String = "",
     val correctAnswer: String = "",
     val explanation: String = "",
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val source: String = "quiz",
+    val userId: String = "",
+    val questionTopic: String = ""
 )

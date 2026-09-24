@@ -1,12 +1,13 @@
 package com.englishpal.app.domain.model
 
 /**
- * Stages in the 5-step mock interview flow.
+ * Open-ended interview phases without hardcoded question caps.
  */
-enum class InterviewStage(val stepNumber: Int, val title: String) {
-    INTRO(1, "Introduction"),
-    TECHNICAL(2, "Technical Question"),
-    BEHAVIORAL(3, "Behavioral Question"),
-    WRAP_UP(4, "Wrap-up"),
-    COMPLETED(5, "Final Feedback")
+enum class InterviewStage(val title: String) {
+    INTRO("Introduction"),
+    TECHNICAL("Technical Depth"),
+    BEHAVIORAL("Behavioral & Leadership"),
+    SYSTEM_DESIGN("System Design & Architecture"),
+    WRAP_UP("Closing & Wrap-Up"),
+    COMPLETED("Interview Completed")
 }

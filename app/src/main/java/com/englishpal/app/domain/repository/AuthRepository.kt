@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface AuthRepository {
     val currentUser: Flow<UserProfile?>
+    suspend fun getOrAwaitUser(): UserProfile?
     fun isUserLoggedIn(): Boolean
     suspend fun signInWithEmail(email: String, pass: String): Result<UserProfile>
     suspend fun signUpWithEmail(email: String, pass: String, name: String): Result<UserProfile>

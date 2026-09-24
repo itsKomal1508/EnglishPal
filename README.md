@@ -20,14 +20,17 @@ Existing apps were either passive grammar quizzes or generic language tools with
 
 ## ✨ Core Features
 
-- 🎙️ **AI Software Engineering Mock Interviewer**: Multi-stage mock technical interviews covering **Introduction**, **Technical Depth**, **Behavioral (STAR method)**, and **Wrap-up** with detailed end-of-session evaluation report cards.
-- 💬 **Interactive AI Conversation Partner**: Natural chat mode powered by Gemini AI with inline sentence restructuring, tense corrections, and context suggestions.
-- 📝 **Adaptive Grammar Quizzes**: Topic-specific quizzes (Tenses, Prepositions, Active/Passive, Conditionals) with Gemini-driven error analysis and explanation breakdowns.
-- 📚 **Personalized Grammar Vault**: Auto-captures mistakes from chats and quizzes into a personal Firestore-backed mistake log for spaced repetition.
-- 🔥 **Gamified Streak & Analytics**: Real-time streak tracking to build consistent daily practice habits.
-- 🔐 **Firebase Auth**: Secure Google, Email/Password, and Guest login modes.
+- 🎙️ **AI Software Engineering Mock Interviewer**: Multi-stage mock interviews covering **Introduction, Technical, Behavioral (STAR), and Wrap-up** rounds, with AI-generated feedback and performance evaluation.
 
----
+- 💬 **AI English Conversation Partner**: Practice English through interactive conversations powered by **Google Gemini AI**, with grammar corrections, sentence improvements, and explanations.
+
+- 📝 **Grammar Quiz & Practice**: Topic-based grammar quizzes covering **Tenses, Prepositions, Active/Passive Voice, and Conditionals**, with AI-powered feedback and explanations.
+
+- 📚 **Personalized Grammar Vault**: Automatically tracks mistakes from conversations and quizzes in **Firebase Firestore**, allowing users to review and improve weak areas.
+
+- 🔥 **Learning Streaks & Progress Tracking**: Tracks daily practice activity, learning streaks, and user progress to encourage consistent English practice.
+
+- 🔐 **Firebase Authentication**: Supports **Google, Email/Password, and Guest authentication** for secure and flexible user access.
 
 ## 📱 Screen Highlights
 
